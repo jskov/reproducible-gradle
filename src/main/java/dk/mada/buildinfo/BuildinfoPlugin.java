@@ -18,7 +18,8 @@ import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 public final class BuildinfoPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        project.getTasks().register("generateBuildInfo", GenerateBuildInfo.class).configure(gbi -> configureTask(project, gbi));
+        project.getTasks().register("generateBuildInfo", GenerateBuildInfo.class)
+            .configure(gbi -> configureTask(project, gbi));
     }
 
     private void configureTask(Project project, GenerateBuildInfo gbi) {

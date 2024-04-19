@@ -32,8 +32,10 @@ import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.jspecify.annotations.Nullable;
 
 public abstract class GenerateBuildInfo extends DefaultTask {
     private static final String NL = System.lineSeparator();
@@ -151,6 +153,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
             }
             Path moduleFile = moduleLocations.get(pub.getPom());
             logger.lifecycle(" LOOK FOR {} in {}", pub.getName(), getModuleFiles().get());
+            logger.lifecycle(" GOT: {}", findMatchingModuleFile(pub));
             if (moduleFile != null) {
                 output = output + renderArtifact(pubNo, artNo++, moduleFile, pub.getArtifactId() + "-" + project.getVersion() + ".module");
             }
@@ -165,6 +168,28 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         return output;
     }
 
+    /**
+     * Look for the module file associated with the given maven publication.
+     *
+     * This assumes that the module file is generated in a folder named after
+     * the maven publication. This assumption may not always be true.
+     *
+     * I tried using a MapPropety<String, RegularFile> but this could not
+     * handle non-existing files. Maybe make an @Internal plain map if
+     * this does not work out?!
+     *
+     * @param pub  the maven publication to find a module file for
+     * @return the found module file, or null 
+     */
+    private @Nullable Path findMatchingModuleFile(MavenPublication pub) {
+        return getModuleFiles().get().stream()
+                .map(rf -> rf.getAsFile().toPath())
+                .filter(Files::isRegularFile)
+                .filter(path -> pub.getName().equals(path.getName(path.getNameCount() - 2).getFileName().toString()))
+                .findFirst()
+                .orElse(null);
+    }
+    
     private Map<MavenPom, Path> getModulePaths() {
         Map<MavenPom, Path> result = new HashMap<>();
         for (GenerateModuleMetadata task : project.getTasks().withType(GenerateModuleMetadata.class)) {
