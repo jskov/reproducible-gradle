@@ -19,8 +19,10 @@ import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
@@ -29,6 +31,7 @@ import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
@@ -40,14 +43,18 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     @OutputFile
     public abstract RegularFileProperty getBuildInfoFile();
     
+    @InputFiles
+    public abstract ListProperty<RegularFile> getModuleFiles();
+    
     @Inject
     public GenerateBuildInfo(ProjectLayout layout) {
-        dependsOn("publish");
-        getOutputs().upToDateWhen(t -> false);
+//        dependsOn("publish");
+//        getOutputs().upToDateWhen(t -> false);
         project = getProject();
         this.logger = project.getLogger();
         
-        getBuildInfoFile().convention(layout.getBuildDirectory().file("buildinfo/" +project.getName() + "-" + project.getVersion() + ".buildinfo"));
+        getBuildInfoFile()
+            .convention(layout.getBuildDirectory().file("buildinfo/" +project.getName() + "-" + project.getVersion() + ".buildinfo"));
     }
     
     @TaskAction
@@ -88,7 +95,10 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         Map<MavenPom, Path> moduleLocations = getModulePaths();
         Map<MavenPom, Path> pomLocations = getPomFileLocations();
 
-        logger.lifecycle("MODULES: {}", moduleLocations);
+        logger.lifecycle("old MODULES: {}", moduleLocations);
+        
+        logger.lifecycle("new MODULES: {}", getModuleFiles().get());
+        
         logger.lifecycle("POMs: {}", pomLocations);
         
         primaryPub.getPom().scm(mps -> {
@@ -140,6 +150,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
                 output = output + renderArtifact(pubNo, artNo++, pomFile, pub.getArtifactId() + "-" + project.getVersion() + ".pom");
             }
             Path moduleFile = moduleLocations.get(pub.getPom());
+            logger.lifecycle(" LOOK FOR {} in {}", pub.getName(), getModuleFiles().get());
             if (moduleFile != null) {
                 output = output + renderArtifact(pubNo, artNo++, moduleFile, pub.getArtifactId() + "-" + project.getVersion() + ".module");
             }
