@@ -1,14 +1,10 @@
 package dk.mada.buildinfo.tasks;
 
-import static java.util.stream.Collectors.toMap;
-
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import org.gradle.api.DefaultTask;
@@ -20,7 +16,6 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenArtifact;
-import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
@@ -58,7 +53,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
     /** {@return a list of pom files that will be published} */
     @InputFiles
-    public abstract ListProperty<File> getPomFiles();
+    public abstract ListProperty<Path> getPomFiles();
 
     /**
      * Constructs new task instance.
@@ -118,7 +113,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     private void capturePomTaskInputs() {
         for (GenerateMavenPom pomTask : project.getTasks().withType(GenerateMavenPom.class)) {
             dependsOn(pomTask);
-            getPomFiles().add(pomTask.getDestination());
+            getPomFiles().add(pomTask.getDestination().toPath());
         }
     }
 
@@ -128,24 +123,22 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     @TaskAction
     public void generateBuildInfo() {
         MavenPublication primaryPub = mavenPublications.getFirst();
+        String buildinfo = createBuildinfo(primaryPub);
 
         Path outputFile = getBuildInfoFile().getAsFile().get().toPath();
         try {
             Files.createDirectories(outputFile.getParent());
-            Files.writeString(outputFile, build(primaryPub));
+            Files.writeString(outputFile, buildinfo);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to write " + outputFile, e);
         }
     }
 
-    private String build(MavenPublication primaryPub) {
+    private String createBuildinfo(MavenPublication primaryPub) {
+        logger.info("See modules: {}", getModuleFiles().get());
+        logger.info("See Poms: {}", getPomFiles().get());
+
         Property<String> cloneConnection = getProject().getObjects().property(String.class);
-        Map<MavenPom, Path> pomLocations = getPomFileLocations();
-
-        logger.lifecycle("new MODULES: {}", getModuleFiles().get());
-
-        logger.lifecycle("POMs: {}", pomLocations);
-
         GradlePluginDevelopmentExtension pluginExt = getProject().getExtensions().findByType(GradlePluginDevelopmentExtension.class);
         if (pluginExt != null) {
             cloneConnection.set(pluginExt.getVcsUrl());
@@ -191,7 +184,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
             int artNo = 0;
 
-            Path pomFile = pomLocations.get(pub.getPom());
+            Path pomFile = findMatchingPomFile(pub);
             if (pomFile != null) {
                 String pomFilename = pub.getArtifactId() + "-" + project.getVersion() + ".pom";
                 output = output + renderOutputInfo(pubNo, artNo++, pomFile, pomFilename);
@@ -236,6 +229,23 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     }
 
     /**
+     * Look for the POM file associated with the given maven publication.
+     *
+     * This assumes that the module file is generated in a folder named after the maven publication. This assumption may not
+     * always be true.
+     *
+     * @param pub the maven publication to find a module file for
+     * @return the found POM file, or null
+     */
+    private @Nullable Path findMatchingPomFile(MavenPublication pub) {
+        return getPomFiles().get().stream()
+                .filter(Files::isRegularFile)
+                .filter(path -> pub.getName().equals(path.getName(path.getNameCount() - 2).getFileName().toString()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * Renders information for an output file.
      *
      * @param pubNo the publication number
@@ -262,10 +272,5 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         return prefix + ".filename=" + filename + NL
                 + prefix + ".length=" + info.size() + NL
                 + prefix + ".checksums.sha512=" + info.sha512sum() + NL;
-    }
-
-    private Map<MavenPom, Path> getPomFileLocations() {
-        return project.getTasks().withType(GenerateMavenPom.class).stream()
-                .collect(toMap(gmp -> gmp.getPom(), gmp -> gmp.getDestination().toPath()));
     }
 }
