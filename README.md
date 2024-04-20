@@ -1,7 +1,6 @@
 # buildinfo-gradle
 
-A Gradle plugin that creates buildinfo for maven artifacts, enabling reproducible builds.
-
+A Gradle plugin that enables [reproducible builds](https://reproducible-builds.org/) by providing [buildinfo](https://reproducible-builds.org/docs/jvm) when publishing Maven artifacts.
 
 ## Using the Plugin
 

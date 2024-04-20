@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +32,6 @@ import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
@@ -55,8 +53,6 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
     @Inject
     public GenerateBuildInfo(ProjectLayout layout) {
-//        dependsOn("publish");
-//        getOutputs().upToDateWhen(t -> false);
         project = getProject();
         this.logger = project.getLogger();
         logger.lifecycle("CREATE task");
@@ -124,21 +120,13 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         }
     }
 
-    // Used by reproducible-central
-    // See https://reproducible-builds.org/docs/jvm/ ('.buildinfo file' section)
     private String build(MavenPublication primaryPub, List<MavenPublication> publications) {
         Property<String> cloneConnection = getProject().getObjects().property(String.class);
-
-        Map<MavenPom, Path> moduleLocations = getModulePaths();
         Map<MavenPom, Path> pomLocations = getPomFileLocations();
-
-        logger.lifecycle("old MODULES: {}", moduleLocations);
 
         logger.lifecycle("new MODULES: {}", getModuleFiles().get());
 
         logger.lifecycle("POMs: {}", pomLocations);
-
-        // or gradle plugin
 
         GradlePluginDevelopmentExtension pluginExt = getProject().getExtensions().findByType(GradlePluginDevelopmentExtension.class);
         if (pluginExt != null) {
@@ -176,8 +164,6 @@ public abstract class GenerateBuildInfo extends DefaultTask {
                 .replace("@JAVA_VENDOR@", System.getProperty("java.vendor"))
                 .replace("@OS_NAME@", System.getProperty("os.name"));
 
-        // ./gradlew -Pversion=0.0.0 generateBuildInfo ; cat build/buildinfo/mada-style-gradle-0.0.0.buildinfo
-
         String output = header;
         int pubNo = 0;
         for (MavenPublication pub : publications) {
@@ -189,15 +175,14 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
             Path pomFile = pomLocations.get(pub.getPom());
             if (pomFile != null) {
-                output = output + renderArtifact(pubNo, artNo++, pomFile, pub.getArtifactId() + "-" + project.getVersion() + ".pom");
+                String pomFilename = pub.getArtifactId() + "-" + project.getVersion() + ".pom";
+                output = output + renderArtifact(pubNo, artNo++, pomFile, pomFilename);
             }
-            Path moduleFile = moduleLocations.get(pub.getPom());
-            logger.lifecycle(" LOOK FOR {} in {}", pub.getName(), getModuleFiles().get());
-            logger.lifecycle(" GOT: {}", findMatchingModuleFile(pub));
+            Path moduleFile = findMatchingModuleFile(pub);
             if (moduleFile != null) {
-                output = output + renderArtifact(pubNo, artNo++, moduleFile, pub.getArtifactId() + "-" + project.getVersion() + ".module");
+                String moduleFilename = pub.getArtifactId() + "-" + project.getVersion() + ".module";
+                output = output + renderArtifact(pubNo, artNo++, moduleFile, moduleFilename);
             }
-
             List<MavenArtifact> sortedArtifacts = pub.getArtifacts().stream()
                     .sorted((a, b) -> a.getFile().compareTo(b.getFile()))
                     .toList();
@@ -230,18 +215,6 @@ public abstract class GenerateBuildInfo extends DefaultTask {
                 .filter(path -> pub.getName().equals(path.getName(path.getNameCount() - 2).getFileName().toString()))
                 .findFirst()
                 .orElse(null);
-    }
-
-    private Map<MavenPom, Path> getModulePaths() {
-        Map<MavenPom, Path> result = new HashMap<>();
-        for (GenerateModuleMetadata task : project.getTasks().withType(GenerateModuleMetadata.class)) {
-            Path moduleFile = task.getOutputFile().get().getAsFile().toPath();
-            if (Files.isRegularFile(moduleFile)
-                    && task.getPublication().getOrNull() instanceof MavenPublication mp) {
-                result.put(mp.getPom(), moduleFile);
-            }
-        }
-        return result;
     }
 
     private String renderArtifact(int pubNo, int artNo, Path file) {
