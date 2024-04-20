@@ -99,6 +99,8 @@ tasks.eclipse {
 test {
     useJUnitPlatform()
     
+    inputs.file("src/test/data/plugin/expected-buildinfo.txt")
+    
     testLogging {
         showStandardStreams = true
         exceptionFormat = 'full'
