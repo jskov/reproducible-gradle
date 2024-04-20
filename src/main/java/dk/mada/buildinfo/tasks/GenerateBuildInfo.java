@@ -37,42 +37,64 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * Task for generating buildinfo file.
+ *
+ * Takes header information from publishing data and adds output lines for all publishable artifacts.
+ */
 public abstract class GenerateBuildInfo extends DefaultTask {
+    /** The line separator to use. */
     private static final String NL = System.lineSeparator();
+    /** The Gradle logger. */
     private final Logger logger;
+    /** The project the task is registered on. */
     private final Project project;
 
+    /** {@return the buildinfo file the result is written to} */
     @OutputFile
     public abstract RegularFileProperty getBuildInfoFile();
 
+    /** {@return a list of module files that will be published} */
     @InputFiles
     public abstract ListProperty<RegularFile> getModuleFiles();
 
+    /** {@return a list of pom files that will be published} */
     @InputFiles
     public abstract ListProperty<File> getPomFiles();
 
+    /**
+     * Constructs new task instance.
+     *
+     * Note that it is expected to be lazy configured before activation.
+     *
+     * @param layout the Gradle project layout
+     * @see #lazyConfiguration()
+     */
     @Inject
     public GenerateBuildInfo(ProjectLayout layout) {
         project = getProject();
         this.logger = project.getLogger();
-        logger.lifecycle("CREATE task");
 
         getBuildInfoFile()
                 .convention(layout.getBuildDirectory().file("buildinfo/" + project.getName() + "-" + project.getVersion() + ".buildinfo"));
     }
 
+    /**
+     * Lazy configuration of the task before it gets activated.
+     *
+     * Should be called from the task registration.
+     */
     public void lazyConfiguration() {
         onlyIf("Publishing extension not active", t -> project.getExtensions().findByType(PublishingExtension.class) != null);
 
-        addModuleTaskInputs();
-        addPomTaskInputs();
-
+        captureModuleTaskInputs();
+        capturePomTaskInputs();
     }
 
     /**
-     * Adds task ModuleFiles input to GenerateModuleMetadata tasks that contain Maven publications.
+     * Captures the outputs from GenerateModuleMetadata tasks.
      */
-    private void addModuleTaskInputs() {
+    private void captureModuleTaskInputs() {
         for (GenerateModuleMetadata moduleTask : project.getTasks().withType(GenerateModuleMetadata.class)) {
             if (moduleTask.getPublication().getOrNull() instanceof MavenPublication) {
                 getModuleFiles().add(moduleTask.getOutputFile());
@@ -81,9 +103,11 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     }
 
     /**
-     * Adds dependency to all GenerateMavenPom tasks and inputs from their files.
+     * Captures the outputs from GenerateMavenPom tasks.
+     *
+     * Also adds dependency to those tasks, since their output is a file, not a provider.
      */
-    private void addPomTaskInputs() {
+    private void capturePomTaskInputs() {
         for (GenerateMavenPom pomTask : project.getTasks().withType(GenerateMavenPom.class)) {
             dependsOn(pomTask);
             getPomFiles().add(pomTask.getDestination());
@@ -91,10 +115,8 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     }
 
     @TaskAction
-    public void go() {
+    public void generateBuildInfo() {
         Path outputFile = getBuildInfoFile().get().getAsFile().toPath();
-
-        logger.lifecycle(" RUN TASK : {}", outputFile);
 
         PublishingExtension pubs = getProject().getExtensions().getByType(PublishingExtension.class);
         PublicationContainer publications = pubs.getPublications();
