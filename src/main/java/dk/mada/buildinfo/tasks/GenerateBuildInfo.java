@@ -4,22 +4,15 @@ import static java.util.stream.Collectors.toMap;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.inject.Inject;
-
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
@@ -36,6 +29,9 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.jspecify.annotations.Nullable;
+
+import dk.mada.buildinfo.util.FileInfos;
+import dk.mada.buildinfo.util.FileInfos.FileInfo;
 
 /**
  * Task for generating buildinfo file.
@@ -69,16 +65,15 @@ public abstract class GenerateBuildInfo extends DefaultTask {
      *
      * Note that it is expected to be lazy configured before activation.
      *
-     * @param layout the Gradle project layout
      * @see #lazyConfiguration()
      */
-    @Inject
-    public GenerateBuildInfo(ProjectLayout layout) {
+    public GenerateBuildInfo() {
         project = getProject();
-        this.logger = project.getLogger();
+        logger = project.getLogger();
 
+        String buildinfoDefaultFilename = project.getName() + "-" + project.getVersion() + ".buildinfo";
         getBuildInfoFile()
-                .convention(layout.getBuildDirectory().file("buildinfo/" + project.getName() + "-" + project.getVersion() + ".buildinfo"));
+                .convention(project.getLayout().getBuildDirectory().file("buildinfo/" + buildinfoDefaultFilename));
     }
 
     /**
@@ -199,18 +194,18 @@ public abstract class GenerateBuildInfo extends DefaultTask {
             Path pomFile = pomLocations.get(pub.getPom());
             if (pomFile != null) {
                 String pomFilename = pub.getArtifactId() + "-" + project.getVersion() + ".pom";
-                output = output + renderArtifact(pubNo, artNo++, pomFile, pomFilename);
+                output = output + renderOutputInfo(pubNo, artNo++, pomFile, pomFilename);
             }
             Path moduleFile = findMatchingModuleFile(pub);
             if (moduleFile != null) {
                 String moduleFilename = pub.getArtifactId() + "-" + project.getVersion() + ".module";
-                output = output + renderArtifact(pubNo, artNo++, moduleFile, moduleFilename);
+                output = output + renderOutputInfo(pubNo, artNo++, moduleFile, moduleFilename);
             }
             List<MavenArtifact> sortedArtifacts = pub.getArtifacts().stream()
                     .sorted((a, b) -> a.getFile().compareTo(b.getFile()))
                     .toList();
             for (MavenArtifact ma : sortedArtifacts) {
-                output = output + renderArtifact(pubNo, artNo++, ma.getFile().toPath());
+                output = output + renderOutputInfo(pubNo, artNo++, ma.getFile().toPath());
             }
 
             pubNo++;
@@ -225,8 +220,8 @@ public abstract class GenerateBuildInfo extends DefaultTask {
      * This assumes that the module file is generated in a folder named after the maven publication. This assumption may not
      * always be true.
      *
-     * I tried using a MapPropety<String, RegularFile> but this could not handle non-existing files. Maybe make an @Internal
-     * plain map if this does not work out?!
+     * I tried using a @Input MapPropety<String, RegularFile> but this could not handle non-existing files. Maybe use the
+     * current @InputFiles lists and a separate map for association if this does not work out?!
      *
      * @param pub the maven publication to find a module file for
      * @return the found module file, or null
@@ -240,48 +235,37 @@ public abstract class GenerateBuildInfo extends DefaultTask {
                 .orElse(null);
     }
 
-    private String renderArtifact(int pubNo, int artNo, Path file) {
-        return renderArtifact(pubNo, artNo, file, file.getFileName().toString());
+    /**
+     * Renders information for an output file.
+     *
+     * @param pubNo the publication number
+     * @param artNo the artifact number
+     * @param file  the file to render information for
+     * @return a buildinfo output-information line
+     */
+    private String renderOutputInfo(int pubNo, int artNo, Path file) {
+        return renderOutputInfo(pubNo, artNo, file, file.getFileName().toString());
     }
 
-    private String renderArtifact(int pubNo, int artNo, Path file, String filename) {
+    /**
+     * Renders information for an output file, overriding the filename.
+     *
+     * @param pubNo    the publication number
+     * @param artNo    the artifact number
+     * @param file     the file to render information for
+     * @param filename the filename to use
+     * @return a buildinfo output-information line
+     */
+    private String renderOutputInfo(int pubNo, int artNo, Path file, String filename) {
+        FileInfo info = FileInfos.from(file);
         String prefix = "outputs." + pubNo + "." + artNo;
         return prefix + ".filename=" + filename + NL
-                + prefix + ".length=" + size(file) + NL
-                + prefix + ".checksums.sha512=" + sha512sum(file) + NL;
+                + prefix + ".length=" + info.size() + NL
+                + prefix + ".checksums.sha512=" + info.sha512sum() + NL;
     }
 
     private Map<MavenPom, Path> getPomFileLocations() {
         return project.getTasks().withType(GenerateMavenPom.class).stream()
                 .collect(toMap(gmp -> gmp.getPom(), gmp -> gmp.getDestination().toPath()));
-    }
-
-//    record X(String coord, List<Path> files) {
-//
-//    }
-
-    private long size(Path file) {
-        try {
-            return Files.size(file);
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to get size of file " + file, e);
-        }
-    }
-
-    private String sha512sum(Path file) {
-        MessageDigest md;
-        byte[] buffer = new byte[8192];
-        try (InputStream is = Files.newInputStream(file)) {
-            md = MessageDigest.getInstance("SHA-512");
-            int read;
-            while ((read = is.read(buffer)) > 0) {
-                md.update(buffer, 0, read);
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to checksum file " + file, e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("Failed to get digester for sha-512", e);
-        }
-        return HexFormat.of().formatHex(md.digest());
     }
 }
