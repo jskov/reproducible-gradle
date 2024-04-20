@@ -138,16 +138,6 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         logger.info("See modules: {}", getModuleFiles().get());
         logger.info("See Poms: {}", getPomFiles().get());
 
-        Property<String> cloneConnection = getProject().getObjects().property(String.class);
-        GradlePluginDevelopmentExtension pluginExt = getProject().getExtensions().findByType(GradlePluginDevelopmentExtension.class);
-        if (pluginExt != null) {
-            cloneConnection.set(pluginExt.getVcsUrl());
-        } else {
-            primaryPub.getPom().scm(mps -> {
-                cloneConnection.set(mps.getDeveloperConnection());
-            });
-        }
-
         String header = """
                 buildinfo.version=1.0-SNAPSHOT
 
@@ -170,7 +160,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
                 .replace("@GROUP@", Objects.toString(project.getGroup()))
                 .replace("@ARTIFACT@", primaryPub.getArtifactId())
                 .replace("@VERSION@", Objects.toString(project.getVersion()))
-                .replace("@GIT_URI@", cloneConnection.get())
+                .replace("@GIT_URI@", getCloneUrl(primaryPub))
                 .replace("@JAVA_VERSION@", System.getProperty("java.version"))
                 .replace("@JAVA_VENDOR@", System.getProperty("java.vendor"))
                 .replace("@OS_NAME@", System.getProperty("os.name"));
@@ -207,6 +197,27 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         return output;
     }
 
+    /**
+     * Get SCM URI from either Gradle Development extension or a maven publication.
+     *
+     * @param pub the maven publication
+     * @return the found SCM URI
+     */
+    private String getCloneUrl(MavenPublication pub) {
+        final Property<String> cloneConnection = getProject().getObjects().property(String.class);
+        GradlePluginDevelopmentExtension pluginExt = getProject().getExtensions().findByType(GradlePluginDevelopmentExtension.class);
+        if (pluginExt != null) {
+            cloneConnection.set(pluginExt.getVcsUrl());
+        } else {
+            // Use a property to extract string from Pom's configuration method
+            pub.getPom().scm(mps -> {
+                cloneConnection.set(mps.getDeveloperConnection());
+            });
+        }
+        return cloneConnection.get();
+    }
+
+    
     /**
      * Look for the module file associated with the given maven publication.
      *
