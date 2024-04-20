@@ -1,4 +1,4 @@
-package dk.mada.buildinfo;
+package dk.mada.buildinfo.tasks;
 
 import static java.util.stream.Collectors.toMap;
 

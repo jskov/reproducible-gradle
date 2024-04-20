@@ -1,19 +1,14 @@
 package dk.mada.test;
 
-import java.io.File;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.assertThat;
-
-/**
- * NOTE:
- * To run from eclipse, first run:
- *  ./gradlew processResources
- *  echo "implementation-classpath=/home/jskov/git/buildinfo-gradle/bin/main:/home/jskov/git/buildinfo-gradle/build/resources/main" > ./build/pluginUnderTestMetadata/plugin-under-test-metadata.properties
- */
 
 public class XTest {
     /** The name of the task to test. */
@@ -21,7 +16,8 @@ public class XTest {
 
     @Test
     void pluginWorks() {
-        BuildResult result = runTest("src/test/data/plugin");
+        Path testDataDir = Paths.get("src/test/data/plugin");
+        BuildResult result = runTest(testDataDir);
         
         System.out.println(result.getOutput());
         
@@ -36,15 +32,15 @@ public class XTest {
      */
     @Test
     void pluginDoesNotBreakDownIfPublishingIsMissing() {
-        BuildResult result = runTest("src/test/data/disabled");
+        BuildResult result = runTest(Paths.get("src/test/data/disabled"));
         
         assertThat(result.task(TASK_NAME).getOutcome())
             .isEqualTo(TaskOutcome.SKIPPED);
     }
 
-    private BuildResult runTest(String testDataPath) {
+    private BuildResult runTest(Path testDataDir) {
         return GradleRunner.create()
-                .withProjectDir(new File(testDataPath))
+                .withProjectDir(testDataDir.toFile())
                 .withPluginClasspath()
                 .withArguments(TASK_NAME, "-s")
                 .build();

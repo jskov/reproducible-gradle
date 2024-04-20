@@ -85,7 +85,16 @@ project.afterEvaluate { p ->
     }
 }
 
-tasks.eclipse.doLast { project.mkdir("build/pluginUnderTestMetadata") }
+// Makes it possible to run Plugin tests
+tasks.eclipse {
+    dependsOn('processResources')
+    doLast {
+        project.delete("build/pluginUnderTestMetadata")
+        project.mkdir("build/pluginUnderTestMetadata")
+        project.file("./build/pluginUnderTestMetadata/plugin-under-test-metadata.properties") <<
+            "implementation-classpath=${project.rootDir}/bin/main:${project.rootDir}/build/resources/main\n" 
+   }
+}
 
 test {
     useJUnitPlatform()
