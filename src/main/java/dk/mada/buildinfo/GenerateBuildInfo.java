@@ -199,7 +199,10 @@ public abstract class GenerateBuildInfo extends DefaultTask {
                 output = output + renderArtifact(pubNo, artNo++, moduleFile, pub.getArtifactId() + "-" + project.getVersion() + ".module");
             }
 
-            for (MavenArtifact ma : pub.getArtifacts()) {
+            List<MavenArtifact> sortedArtifacts = pub.getArtifacts().stream()
+                .sorted((a, b) -> a.getFile().compareTo(b.getFile()))
+                .toList();
+            for (MavenArtifact ma : sortedArtifacts) {
                 output = output + renderArtifact(pubNo, artNo++, ma.getFile().toPath());
             }
 

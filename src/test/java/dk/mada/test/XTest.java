@@ -26,7 +26,7 @@ public class XTest {
         System.out.println(result.getOutput());
         
         assertThat(result.task(TASK_NAME).getOutcome())
-            .isEqualTo(TaskOutcome.SKIPPED);
+            .isEqualTo(TaskOutcome.SUCCESS);
     }
 
     
