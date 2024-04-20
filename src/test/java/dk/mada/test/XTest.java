@@ -20,7 +20,7 @@ public class XTest {
         BuildResult result = GradleRunner.create()
                 .withProjectDir(new File("src/test/data/simple"))
                 .withPluginClasspath()
-                .withArguments("createBuildInfo", "-i")
+                .withArguments("generateBuildInfo", "-i")
                 .build();
         
         System.out.println("GOT " + result.getOutput());
