@@ -24,6 +24,12 @@ configurations {
 
 dependencies {
     compileOnly    "org.jspecify:jspecify:0.3.0"
+
+    testImplementation(platform('org.junit:junit-bom:5.10.2'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+
+    testImplementation gradleTestKit()
 }
 
 gradlePlugin {
@@ -38,6 +44,8 @@ gradlePlugin {
             implementationClass = 'dk.mada.buildinfo.BuildinfoPlugin'
         }
     }
+    
+    testSourceSets sourceSets.test
 }
 
 publishing {
@@ -77,6 +85,13 @@ project.afterEvaluate { p ->
 }
 
 tasks.eclipse.doLast { project.mkdir("build/pluginUnderTestMetadata") }
+
+test {
+    useJUnitPlatform()
+    
+    testLogging.showStandardStreams = true
+}
+
 
 String digest(File f) {
     byte[] b = f.readBytes()
