@@ -17,7 +17,7 @@ public final class BuildinfoPlugin implements Plugin<Project> {
      */
     public BuildinfoPlugin() {
     }
-    
+
     @Override
     public void apply(Project project) {
         project.getTasks().register("generateBuildInfo", GenerateBuildInfo.class)

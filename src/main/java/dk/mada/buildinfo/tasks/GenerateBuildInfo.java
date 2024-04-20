@@ -91,7 +91,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
             onlyIf("No maven publications to base buildinfo on", t -> !foundPublications.isEmpty());
         }
-        
+
         captureModuleTaskInputs();
         capturePomTaskInputs();
     }
