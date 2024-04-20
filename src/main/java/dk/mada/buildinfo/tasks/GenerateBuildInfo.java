@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,6 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPom;
@@ -49,6 +49,8 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     private final Logger logger;
     /** The project the task is registered on. */
     private final Project project;
+    /** The maven publications to work on. */
+    private final List<MavenPublication> mavenPublications = new ArrayList<>();
 
     /** {@return the buildinfo file the result is written to} */
     @OutputFile
@@ -85,7 +87,18 @@ public abstract class GenerateBuildInfo extends DefaultTask {
      * Should be called from the task registration.
      */
     public void lazyConfiguration() {
-        onlyIf("Publishing extension not active", t -> project.getExtensions().findByType(PublishingExtension.class) != null);
+        PublishingExtension publishingExt = getProject().getExtensions().findByType(PublishingExtension.class);
+        onlyIf("Publishing extension not active", t -> publishingExt != null);
+
+        if (publishingExt != null) {
+            List<MavenPublication> foundPublications = publishingExt.getPublications().stream()
+                    .filter(p -> p instanceof MavenPublication)
+                    .map(p -> MavenPublication.class.cast(p))
+                    .toList();
+            mavenPublications.addAll(foundPublications);
+
+            onlyIf("No maven publications to base buildinfo on", t -> !foundPublications.isEmpty());
+        }
 
         captureModuleTaskInputs();
         capturePomTaskInputs();
@@ -114,35 +127,23 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         }
     }
 
+    /**
+     * Generate the buildinfo file.
+     */
     @TaskAction
     public void generateBuildInfo() {
-        Path outputFile = getBuildInfoFile().get().getAsFile().toPath();
-
-        PublishingExtension pubs = getProject().getExtensions().getByType(PublishingExtension.class);
-        PublicationContainer publications = pubs.getPublications();
-        logger.lifecycle(" publications: {}", publications);
-        List<MavenPublication> mavenPublications = publications.stream()
-                .filter(p -> p instanceof MavenPublication)
-                .map(p -> MavenPublication.class.cast(p))
-                .toList();
-
-        if (mavenPublications.isEmpty()) {
-            logger.warn("No maven publications to base buildinfo on");
-            return;
-        }
-
         MavenPublication primaryPub = mavenPublications.getFirst();
 
+        Path outputFile = getBuildInfoFile().getAsFile().get().toPath();
         try {
             Files.createDirectories(outputFile.getParent());
-            Files.writeString(outputFile, build(primaryPub, mavenPublications));
+            Files.writeString(outputFile, build(primaryPub));
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to write " + outputFile, e);
         }
     }
 
-    private String build(MavenPublication primaryPub, List<MavenPublication> publications) {
+    private String build(MavenPublication primaryPub) {
         Property<String> cloneConnection = getProject().getObjects().property(String.class);
         Map<MavenPom, Path> pomLocations = getPomFileLocations();
 
@@ -188,7 +189,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
         String output = header;
         int pubNo = 0;
-        for (MavenPublication pub : publications) {
+        for (MavenPublication pub : mavenPublications) {
             String coords = pub.getGroupId() + ":" + pub.getArtifactId();
 
             output = output + "outputs." + pubNo + ".coordinates=" + coords + NL;
@@ -255,9 +256,9 @@ public abstract class GenerateBuildInfo extends DefaultTask {
                 .collect(toMap(gmp -> gmp.getPom(), gmp -> gmp.getDestination().toPath()));
     }
 
-    record X(String coord, List<Path> files) {
-
-    }
+//    record X(String coord, List<Path> files) {
+//
+//    }
 
     private long size(Path file) {
         try {
