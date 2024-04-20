@@ -99,5 +99,8 @@ tasks.eclipse {
 test {
     useJUnitPlatform()
     
-    testLogging.showStandardStreams = true
+    testLogging {
+        showStandardStreams = true
+        exceptionFormat = 'full'
+    }
 }
