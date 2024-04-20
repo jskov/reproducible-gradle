@@ -30,6 +30,7 @@ dependencies {
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 
     testImplementation gradleTestKit()
+    testImplementation  "org.assertj:assertj-core:3.25.3"
 }
 
 gradlePlugin {
