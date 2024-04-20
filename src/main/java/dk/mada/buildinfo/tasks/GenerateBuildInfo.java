@@ -74,8 +74,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     }
 
     /**
-     * Adds task ModuleFiles input to GenerateModuleMetadata tasks
-     * that contain Maven publications.
+     * Adds task ModuleFiles input to GenerateModuleMetadata tasks that contain Maven publications.
      */
     private void addModuleTaskInputs() {
         for (GenerateModuleMetadata moduleTask : project.getTasks().withType(GenerateModuleMetadata.class)) {
@@ -140,7 +139,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         logger.lifecycle("POMs: {}", pomLocations);
 
         // or gradle plugin
-        
+
         GradlePluginDevelopmentExtension pluginExt = getProject().getExtensions().findByType(GradlePluginDevelopmentExtension.class);
         if (pluginExt != null) {
             cloneConnection.set(pluginExt.getVcsUrl());
@@ -200,8 +199,8 @@ public abstract class GenerateBuildInfo extends DefaultTask {
             }
 
             List<MavenArtifact> sortedArtifacts = pub.getArtifacts().stream()
-                .sorted((a, b) -> a.getFile().compareTo(b.getFile()))
-                .toList();
+                    .sorted((a, b) -> a.getFile().compareTo(b.getFile()))
+                    .toList();
             for (MavenArtifact ma : sortedArtifacts) {
                 output = output + renderArtifact(pubNo, artNo++, ma.getFile().toPath());
             }

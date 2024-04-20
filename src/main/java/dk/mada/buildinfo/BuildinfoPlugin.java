@@ -16,7 +16,7 @@ public final class BuildinfoPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getTasks().register("generateBuildInfo", GenerateBuildInfo.class)
                 .configure(GenerateBuildInfo::lazyConfiguration);
-        
+
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(jar -> {
             jar.setReproducibleFileOrder(true);
             jar.setPreserveFileTimestamps(false);
