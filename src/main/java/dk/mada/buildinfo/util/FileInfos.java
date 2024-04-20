@@ -11,7 +11,8 @@ import java.util.HexFormat;
 /**
  * Utility to capture the necessary output file information.
  */
-public class FileInfos {
+public final class FileInfos {
+    /** The buffer size to use when calculating checksums. */
     private static final int CHECKSUM_BUFFER_SIZE = 8192;
 
     private FileInfos() {
