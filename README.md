@@ -3,7 +3,7 @@
 
 A Gradle plugin that enables [reproducible builds](https://reproducible-builds.org/) by providing [buildinfo](https://reproducible-builds.org/docs/jvm) when publishing Maven artifacts.
 
-The plugin also configurs [reproducible archive tasks](https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives).
+The plugin also configures [reproducible archive tasks](https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives).
 
 ## Using the Plugin
 
