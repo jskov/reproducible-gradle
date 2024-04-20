@@ -23,6 +23,8 @@ public class XTest {
     void pluginWorks() {
         BuildResult result = runTest("src/test/data/plugin");
         
+        System.out.println(result.getOutput());
+        
         assertThat(result.task(TASK_NAME).getOutcome())
             .isEqualTo(TaskOutcome.SKIPPED);
     }

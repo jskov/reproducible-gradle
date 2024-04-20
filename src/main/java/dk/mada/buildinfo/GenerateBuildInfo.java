@@ -2,6 +2,7 @@ package dk.mada.buildinfo;
 
 import static java.util.stream.Collectors.toMap;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -35,6 +36,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.jspecify.annotations.Nullable;
 
 public abstract class GenerateBuildInfo extends DefaultTask {
@@ -47,6 +49,9 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
     @InputFiles
     public abstract ListProperty<RegularFile> getModuleFiles();
+
+    @InputFiles
+    public abstract ListProperty<File> getPomFiles();
 
     @Inject
     public GenerateBuildInfo(ProjectLayout layout) {
@@ -63,19 +68,31 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     public void lazyConfiguration() {
         onlyIf("Publishing extension not active", t -> project.getExtensions().findByType(PublishingExtension.class) != null);
 
-        for (GenerateModuleMetadata moduleTask : project.getTasks().withType(GenerateModuleMetadata.class)) {
-            if (moduleTask.getPublication().getOrNull() instanceof MavenPublication mp) {
+        addModuleTaskInputs();
+        addPomTaskInputs();
 
-                RegularFileProperty outputFile = moduleTask.getOutputFile();
-                String id = mp.getGroupId() + mp.getArtifactId();
-                project.getLogger().lifecycle(" See {} : {}", id, outputFile);
-                // moduleFiles.put(id, outputFile);
-//                if (id.equals("dk.mada.stylemada-style-gradle")) {
-                getModuleFiles().add(outputFile);
-//                }
+    }
+
+    /**
+     * Adds task ModuleFiles input to GenerateModuleMetadata tasks
+     * that contain Maven publications.
+     */
+    private void addModuleTaskInputs() {
+        for (GenerateModuleMetadata moduleTask : project.getTasks().withType(GenerateModuleMetadata.class)) {
+            if (moduleTask.getPublication().getOrNull() instanceof MavenPublication) {
+                getModuleFiles().add(moduleTask.getOutputFile());
             }
         }
+    }
 
+    /**
+     * Adds dependency to all GenerateMavenPom tasks and inputs from their files.
+     */
+    private void addPomTaskInputs() {
+        for (GenerateMavenPom pomTask : project.getTasks().withType(GenerateMavenPom.class)) {
+            dependsOn(pomTask);
+            getPomFiles().add(pomTask.getDestination());
+        }
     }
 
     @TaskAction
@@ -122,9 +139,16 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
         logger.lifecycle("POMs: {}", pomLocations);
 
-        primaryPub.getPom().scm(mps -> {
-            cloneConnection.set(mps.getDeveloperConnection());
-        });
+        // or gradle plugin
+        
+        GradlePluginDevelopmentExtension pluginExt = getProject().getExtensions().findByType(GradlePluginDevelopmentExtension.class);
+        if (pluginExt != null) {
+            cloneConnection.set(pluginExt.getVcsUrl());
+        } else {
+            primaryPub.getPom().scm(mps -> {
+                cloneConnection.set(mps.getDeveloperConnection());
+            });
+        }
 
         String header = """
                 buildinfo.version=1.0-SNAPSHOT
