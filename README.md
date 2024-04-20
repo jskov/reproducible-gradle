@@ -1,6 +1,9 @@
 # buildinfo-gradle
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jskov_buildinfo-gradle&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jskov_buildinfo-gradle)
 
 A Gradle plugin that enables [reproducible builds](https://reproducible-builds.org/) by providing [buildinfo](https://reproducible-builds.org/docs/jvm) when publishing Maven artifacts.
+
+The plugin also configurs [reproducible archive tasks](https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives).
 
 ## Using the Plugin
 
