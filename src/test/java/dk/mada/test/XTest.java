@@ -19,6 +19,15 @@ public class XTest {
     /** The name of the task to test. */
     private static final String TASK_NAME = ":generateBuildInfo";
 
+    @Test
+    void pluginWorks() {
+        BuildResult result = runTest("src/test/data/plugin");
+        
+        assertThat(result.task(TASK_NAME).getOutcome())
+            .isEqualTo(TaskOutcome.SKIPPED);
+    }
+
+    
     /**
      * Tests that the task is gracefully disabled if there is no
      * sensible data for its configuration.

@@ -1,5 +1,0 @@
-plugins {
-    id 'dk.mada.buildinfo'
-}
-
-println "Hey3"
