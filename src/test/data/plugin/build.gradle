@@ -20,4 +20,3 @@ gradlePlugin {
 }
 
 project.delete("build/buildinfo")
-println "Hey3"

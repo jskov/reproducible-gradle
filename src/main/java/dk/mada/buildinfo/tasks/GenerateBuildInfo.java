@@ -135,37 +135,11 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     }
 
     private String createBuildinfo(MavenPublication primaryPub) {
+        String output = generateHeader(primaryPub);
+
         logger.info("See modules: {}", getModuleFiles().get());
         logger.info("See Poms: {}", getPomFiles().get());
 
-        String header = """
-                buildinfo.version=1.0-SNAPSHOT
-
-                name=@NAME@
-                group-id=@GROUP@
-                artifact-id=@ARTIFACT@
-                version=@VERSION@
-
-                build-tool=gradle
-
-                java.version=@JAVA_VERSION@
-                java.vendor=@JAVA_VENDOR@
-                os.name=@OS_NAME@
-
-                source.scm.uri=@GIT_URI@
-                source.scm.tag=@VERSION@
-
-                """
-                .replace("@NAME@", project.getName())
-                .replace("@GROUP@", Objects.toString(project.getGroup()))
-                .replace("@ARTIFACT@", primaryPub.getArtifactId())
-                .replace("@VERSION@", Objects.toString(project.getVersion()))
-                .replace("@GIT_URI@", getCloneUrl(primaryPub))
-                .replace("@JAVA_VERSION@", System.getProperty("java.version"))
-                .replace("@JAVA_VENDOR@", System.getProperty("java.vendor"))
-                .replace("@OS_NAME@", System.getProperty("os.name"));
-
-        String output = header;
         int pubNo = 0;
         for (MavenPublication pub : mavenPublications) {
             String coords = pub.getGroupId() + ":" + pub.getArtifactId();
@@ -195,6 +169,35 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         }
 
         return output;
+    }
+
+    private String generateHeader(MavenPublication primaryPub) {
+        return """
+                buildinfo.version=1.0-SNAPSHOT
+
+                name=@NAME@
+                group-id=@GROUP@
+                artifact-id=@ARTIFACT@
+                version=@VERSION@
+
+                build-tool=gradle
+
+                java.version=@JAVA_VERSION@
+                java.vendor=@JAVA_VENDOR@
+                os.name=@OS_NAME@
+
+                source.scm.uri=@GIT_URI@
+                source.scm.tag=@VERSION@
+
+                """
+                .replace("@NAME@", project.getName())
+                .replace("@GROUP@", Objects.toString(project.getGroup()))
+                .replace("@ARTIFACT@", primaryPub.getArtifactId())
+                .replace("@VERSION@", Objects.toString(project.getVersion()))
+                .replace("@GIT_URI@", getCloneUrl(primaryPub))
+                .replace("@JAVA_VERSION@", System.getProperty("java.version"))
+                .replace("@JAVA_VENDOR@", System.getProperty("java.vendor"))
+                .replace("@OS_NAME@", System.getProperty("os.name"));
     }
 
     /**
