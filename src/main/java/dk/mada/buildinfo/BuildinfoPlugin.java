@@ -12,6 +12,12 @@ import dk.mada.buildinfo.tasks.GenerateBuildInfo;
  * The plugin also configures archive tasks to be reproducible.
  */
 public final class BuildinfoPlugin implements Plugin<Project> {
+    /**
+     * Constructs a new instance.
+     */
+    public BuildinfoPlugin() {
+    }
+    
     @Override
     public void apply(Project project) {
         project.getTasks().register("generateBuildInfo", GenerateBuildInfo.class)

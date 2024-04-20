@@ -32,6 +32,8 @@ import dk.mada.buildinfo.util.FileInfos.FileInfo;
  * Task for generating buildinfo file.
  *
  * Takes header information from publishing data and adds output lines for all publishable artifacts.
+ *
+ * It is unclear if this task could be @CacheableTask so left out for now.
  */
 public abstract class GenerateBuildInfo extends DefaultTask {
     /** The line separator to use. */
@@ -89,7 +91,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
             onlyIf("No maven publications to base buildinfo on", t -> !foundPublications.isEmpty());
         }
-
+        
         captureModuleTaskInputs();
         capturePomTaskInputs();
     }
@@ -135,7 +137,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     }
 
     private String createBuildinfo(MavenPublication primaryPub) {
-        String output = generateHeader(primaryPub);
+        StringBuilder output = new StringBuilder(generateHeader(primaryPub));
 
         logger.info("See modules: {}", getModuleFiles().get());
         logger.info("See Poms: {}", getPomFiles().get());
@@ -144,31 +146,31 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         for (MavenPublication pub : mavenPublications) {
             String coords = pub.getGroupId() + ":" + pub.getArtifactId();
 
-            output = output + "outputs." + pubNo + ".coordinates=" + coords + NL;
+            output.append("outputs." + pubNo + ".coordinates=" + coords + NL);
 
             int artNo = 0;
 
             Path pomFile = findMatchingPomFile(pub);
             if (pomFile != null) {
                 String pomFilename = pub.getArtifactId() + "-" + project.getVersion() + ".pom";
-                output = output + renderOutputInfo(pubNo, artNo++, pomFile, pomFilename);
+                output.append(renderOutputInfo(pubNo, artNo++, pomFile, pomFilename));
             }
             Path moduleFile = findMatchingModuleFile(pub);
             if (moduleFile != null) {
                 String moduleFilename = pub.getArtifactId() + "-" + project.getVersion() + ".module";
-                output = output + renderOutputInfo(pubNo, artNo++, moduleFile, moduleFilename);
+                output.append(renderOutputInfo(pubNo, artNo++, moduleFile, moduleFilename));
             }
             List<MavenArtifact> sortedArtifacts = pub.getArtifacts().stream()
                     .sorted((a, b) -> a.getFile().compareTo(b.getFile()))
                     .toList();
             for (MavenArtifact ma : sortedArtifacts) {
-                output = output + renderOutputInfo(pubNo, artNo++, ma.getFile().toPath());
+                output.append(renderOutputInfo(pubNo, artNo++, ma.getFile().toPath()));
             }
 
             pubNo++;
         }
 
-        return output;
+        return output.toString();
     }
 
     private String generateHeader(MavenPublication primaryPub) {
@@ -220,7 +222,6 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         return cloneConnection.get();
     }
 
-    
     /**
      * Look for the module file associated with the given maven publication.
      *
