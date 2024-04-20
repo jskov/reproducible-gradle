@@ -60,6 +60,24 @@ public abstract class GenerateBuildInfo extends DefaultTask {
             .convention(layout.getBuildDirectory().file("buildinfo/" +project.getName() + "-" + project.getVersion() + ".buildinfo"));
     }
     
+    public void lazyConfiguration() {
+        onlyIf("Publishing extension not active", t -> project.getExtensions().findByType(PublishingExtension.class) != null);
+        
+        for (GenerateModuleMetadata moduleTask : project.getTasks().withType(GenerateModuleMetadata.class)) {
+            if (moduleTask.getPublication().getOrNull() instanceof MavenPublication mp) {
+                
+                RegularFileProperty outputFile = moduleTask.getOutputFile();
+                String id = mp.getGroupId()+mp.getArtifactId();
+                project.getLogger().lifecycle(" See {} : {}", id, outputFile);
+ //               moduleFiles.put(id, outputFile);
+//                if (id.equals("dk.mada.stylemada-style-gradle")) {
+                    getModuleFiles().add(outputFile);
+//                }
+            }
+        }
+        
+    }
+    
     @TaskAction
     public void go() {
         Path outputFile = getBuildInfoFile().get().getAsFile().toPath();
