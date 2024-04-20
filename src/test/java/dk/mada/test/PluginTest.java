@@ -26,7 +26,7 @@ public class PluginTest {
         BuildResult result = runTest(testDataDir);
 
         System.out.println(result.getOutput());
-        
+
         assertThat(result.task(TASK_NAME).getOutcome())
                 .isEqualTo(TaskOutcome.SUCCESS);
 
