@@ -54,6 +54,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 //        getOutputs().upToDateWhen(t -> false);
         project = getProject();
         this.logger = project.getLogger();
+        logger.lifecycle("CREATE task");
         
         getBuildInfoFile()
             .convention(layout.getBuildDirectory().file("buildinfo/" +project.getName() + "-" + project.getVersion() + ".buildinfo"));
