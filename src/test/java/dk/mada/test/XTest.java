@@ -30,7 +30,7 @@ public class XTest {
         assertThat(result.task(TASK_NAME).getOutcome())
             .isEqualTo(TaskOutcome.SKIPPED);
     }
-    
+
     private BuildResult runTest(String testDataPath) {
         return GradleRunner.create()
                 .withProjectDir(new File(testDataPath))

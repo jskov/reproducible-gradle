@@ -8,6 +8,6 @@ public final class BuildinfoPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getLogger().lifecycle("APPLY plugin");
         project.getTasks().register("generateBuildInfo", GenerateBuildInfo.class)
-            .configure(GenerateBuildInfo::lazyConfiguration);
+                .configure(GenerateBuildInfo::lazyConfiguration);
     }
 }

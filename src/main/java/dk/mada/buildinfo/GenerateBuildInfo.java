@@ -44,10 +44,10 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
     @OutputFile
     public abstract RegularFileProperty getBuildInfoFile();
-    
+
     @InputFiles
     public abstract ListProperty<RegularFile> getModuleFiles();
-    
+
     @Inject
     public GenerateBuildInfo(ProjectLayout layout) {
 //        dependsOn("publish");
@@ -55,48 +55,48 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         project = getProject();
         this.logger = project.getLogger();
         logger.lifecycle("CREATE task");
-        
+
         getBuildInfoFile()
-            .convention(layout.getBuildDirectory().file("buildinfo/" +project.getName() + "-" + project.getVersion() + ".buildinfo"));
+                .convention(layout.getBuildDirectory().file("buildinfo/" + project.getName() + "-" + project.getVersion() + ".buildinfo"));
     }
-    
+
     public void lazyConfiguration() {
         onlyIf("Publishing extension not active", t -> project.getExtensions().findByType(PublishingExtension.class) != null);
-        
+
         for (GenerateModuleMetadata moduleTask : project.getTasks().withType(GenerateModuleMetadata.class)) {
             if (moduleTask.getPublication().getOrNull() instanceof MavenPublication mp) {
-                
+
                 RegularFileProperty outputFile = moduleTask.getOutputFile();
-                String id = mp.getGroupId()+mp.getArtifactId();
+                String id = mp.getGroupId() + mp.getArtifactId();
                 project.getLogger().lifecycle(" See {} : {}", id, outputFile);
- //               moduleFiles.put(id, outputFile);
+                // moduleFiles.put(id, outputFile);
 //                if (id.equals("dk.mada.stylemada-style-gradle")) {
-                    getModuleFiles().add(outputFile);
+                getModuleFiles().add(outputFile);
 //                }
             }
         }
-        
+
     }
-    
+
     @TaskAction
     public void go() {
         Path outputFile = getBuildInfoFile().get().getAsFile().toPath();
-        
+
         logger.lifecycle(" RUN TASK : {}", outputFile);
 
         PublishingExtension pubs = getProject().getExtensions().getByType(PublishingExtension.class);
         PublicationContainer publications = pubs.getPublications();
         logger.lifecycle(" publications: {}", publications);
         List<MavenPublication> mavenPublications = publications.stream()
-            .filter(p -> p instanceof MavenPublication)
-            .map(p -> MavenPublication.class.cast(p))
-            .toList();
+                .filter(p -> p instanceof MavenPublication)
+                .map(p -> MavenPublication.class.cast(p))
+                .toList();
 
         if (mavenPublications.isEmpty()) {
             logger.warn("No maven publications to base buildinfo on");
             return;
         }
-        
+
         MavenPublication primaryPub = mavenPublications.getFirst();
 
         try {
@@ -117,33 +117,33 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         Map<MavenPom, Path> pomLocations = getPomFileLocations();
 
         logger.lifecycle("old MODULES: {}", moduleLocations);
-        
+
         logger.lifecycle("new MODULES: {}", getModuleFiles().get());
-        
+
         logger.lifecycle("POMs: {}", pomLocations);
-        
+
         primaryPub.getPom().scm(mps -> {
             cloneConnection.set(mps.getDeveloperConnection());
         });
-        
+
         String header = """
-            buildinfo.version=1.0-SNAPSHOT
-    
-            name=@NAME@
-            group-id=@GROUP@
-            artifact-id=@ARTIFACT@
-            version=@VERSION@
+                buildinfo.version=1.0-SNAPSHOT
 
-            build-tool=gradle
+                name=@NAME@
+                group-id=@GROUP@
+                artifact-id=@ARTIFACT@
+                version=@VERSION@
 
-            java.version=@JAVA_VERSION@
-            java.vendor=@JAVA_VENDOR@
-            os.name=@OS_NAME@
+                build-tool=gradle
 
-            source.scm.uri=@GIT_URI@
-            source.scm.tag=@VERSION@
+                java.version=@JAVA_VERSION@
+                java.vendor=@JAVA_VENDOR@
+                os.name=@OS_NAME@
 
-            """
+                source.scm.uri=@GIT_URI@
+                source.scm.tag=@VERSION@
+
+                """
                 .replace("@NAME@", project.getName())
                 .replace("@GROUP@", Objects.toString(project.getGroup()))
                 .replace("@ARTIFACT@", primaryPub.getArtifactId())
@@ -151,12 +151,10 @@ public abstract class GenerateBuildInfo extends DefaultTask {
                 .replace("@GIT_URI@", cloneConnection.get())
                 .replace("@JAVA_VERSION@", System.getProperty("java.version"))
                 .replace("@JAVA_VENDOR@", System.getProperty("java.vendor"))
-                .replace("@OS_NAME@", System.getProperty("os.name"))
-                ;
-
+                .replace("@OS_NAME@", System.getProperty("os.name"));
 
         // ./gradlew -Pversion=0.0.0 generateBuildInfo ; cat build/buildinfo/mada-style-gradle-0.0.0.buildinfo
-        
+
         String output = header;
         int pubNo = 0;
         for (MavenPublication pub : publications) {
@@ -176,29 +174,28 @@ public abstract class GenerateBuildInfo extends DefaultTask {
             if (moduleFile != null) {
                 output = output + renderArtifact(pubNo, artNo++, moduleFile, pub.getArtifactId() + "-" + project.getVersion() + ".module");
             }
-            
+
             for (MavenArtifact ma : pub.getArtifacts()) {
                 output = output + renderArtifact(pubNo, artNo++, ma.getFile().toPath());
             }
 
             pubNo++;
         }
-        
+
         return output;
     }
 
     /**
      * Look for the module file associated with the given maven publication.
      *
-     * This assumes that the module file is generated in a folder named after
-     * the maven publication. This assumption may not always be true.
+     * This assumes that the module file is generated in a folder named after the maven publication. This assumption may not
+     * always be true.
      *
-     * I tried using a MapPropety<String, RegularFile> but this could not
-     * handle non-existing files. Maybe make an @Internal plain map if
-     * this does not work out?!
+     * I tried using a MapPropety<String, RegularFile> but this could not handle non-existing files. Maybe make an @Internal
+     * plain map if this does not work out?!
      *
-     * @param pub  the maven publication to find a module file for
-     * @return the found module file, or null 
+     * @param pub the maven publication to find a module file for
+     * @return the found module file, or null
      */
     private @Nullable Path findMatchingModuleFile(MavenPublication pub) {
         return getModuleFiles().get().stream()
@@ -208,7 +205,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
                 .findFirst()
                 .orElse(null);
     }
-    
+
     private Map<MavenPom, Path> getModulePaths() {
         Map<MavenPom, Path> result = new HashMap<>();
         for (GenerateModuleMetadata task : project.getTasks().withType(GenerateModuleMetadata.class)) {
@@ -220,7 +217,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
         }
         return result;
     }
-    
+
     private String renderArtifact(int pubNo, int artNo, Path file) {
         return renderArtifact(pubNo, artNo, file, file.getFileName().toString());
     }
@@ -231,16 +228,16 @@ public abstract class GenerateBuildInfo extends DefaultTask {
                 + prefix + ".length=" + size(file) + NL
                 + prefix + ".checksums.sha512=" + sha512sum(file) + NL;
     }
-    
+
     private Map<MavenPom, Path> getPomFileLocations() {
         return project.getTasks().withType(GenerateMavenPom.class).stream()
-            .collect(toMap(gmp -> gmp.getPom(), gmp -> gmp.getDestination().toPath()));
+                .collect(toMap(gmp -> gmp.getPom(), gmp -> gmp.getDestination().toPath()));
     }
 
     record X(String coord, List<Path> files) {
-        
+
     }
-    
+
     private long size(Path file) {
         try {
             return Files.size(file);
@@ -248,7 +245,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
             throw new IllegalStateException("Failed to get size of file " + file, e);
         }
     }
-    
+
     private String sha512sum(Path file) {
         MessageDigest md;
         byte[] buffer = new byte[8192];
