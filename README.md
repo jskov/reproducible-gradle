@@ -20,6 +20,20 @@ And make sure the plugin can be fetched from MavenCentral:
         }
     }
 
+## Open Source vs Expectancy of Work
+
+This project is Open Source and I am happy for you to use the plugin, report bugs and suggest changes.
+
+But while the source code is free, it does not come bundled with promises or guarantees of free work.
+
+I will try to fix reported bugs (if I agree with them), but will commit to no time tables.
+
+If you are itching to make some changes (to this repository), please open an issue first, so we can discuss.  
+I do not want you to waste your time!
+
+If this is not agreeable, you are more than welcome to fork the project and do your own thing.
+
+Open Source, Yay!
 
 ## Development
 
