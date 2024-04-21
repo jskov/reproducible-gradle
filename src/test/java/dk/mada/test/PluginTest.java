@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests the buildinfo plugin.
  */
-public class PluginTest {
+class PluginTest {
     /** The name of the task to test. */
     private static final String TASK_NAME = ":generateBuildInfo";
 

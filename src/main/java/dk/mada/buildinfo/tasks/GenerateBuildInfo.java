@@ -62,9 +62,9 @@ public abstract class GenerateBuildInfo extends DefaultTask {
      *
      * Note that it is expected to be lazy configured before activation.
      *
-     * @see #lazyConfiguration()
+     * @see #lazyConfiguration
      */
-    public GenerateBuildInfo() {
+    public GenerateBuildInfo() { // NOSONAR: must be public for Gradle/Groovy
         project = getProject();
         logger = project.getLogger();
 
@@ -84,8 +84,8 @@ public abstract class GenerateBuildInfo extends DefaultTask {
 
         if (publishingExt != null) {
             List<MavenPublication> foundPublications = publishingExt.getPublications().stream()
-                    .filter(p -> p instanceof MavenPublication)
-                    .map(p -> MavenPublication.class.cast(p))
+                    .filter(MavenPublication.class::isInstance)
+                    .map(MavenPublication.class::cast)
                     .toList();
             mavenPublications.addAll(foundPublications);
 
@@ -215,9 +215,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
             cloneConnection.set(pluginExt.getVcsUrl());
         } else {
             // Use a property to extract string from Pom's configuration method
-            pub.getPom().scm(mps -> {
-                cloneConnection.set(mps.getDeveloperConnection());
-            });
+            pub.getPom().scm(mps -> cloneConnection.set(mps.getDeveloperConnection()));
         }
         return cloneConnection.get();
     }
