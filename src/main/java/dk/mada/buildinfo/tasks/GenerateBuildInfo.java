@@ -225,9 +225,9 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     /**
      * Look for the module file associated with the given maven publication.
      *
+     * NOTE:
      * This assumes that the module file is generated in a folder named after the maven publication. This assumption may not
      * always be true.
-     *
      * I tried using a @Input MapPropety<String, RegularFile> but this could not handle non-existing files. Maybe use the
      * current @InputFiles lists and a separate map for association if this does not work out?!
      *
@@ -246,8 +246,7 @@ public abstract class GenerateBuildInfo extends DefaultTask {
     /**
      * Look for the POM file associated with the given maven publication.
      *
-     * This assumes that the module file is generated in a folder named after the maven publication. This assumption may not
-     * always be true.
+     * NOTE: Same notice as {@link #findMatchingModuleFile}
      *
      * @param pub the maven publication to find a module file for
      * @return the found POM file, or null
