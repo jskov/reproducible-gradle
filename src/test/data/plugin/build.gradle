@@ -1,0 +1,22 @@
+plugins {
+    id 'dk.mada.buildinfo'
+    id 'com.gradle.plugin-publish' version '1.2.1'
+}
+
+group = 'dk.mada.test'
+
+gradlePlugin {
+    website = 'https://github.com/jskov/test'
+    vcsUrl = 'https://github.com/jskov/test'
+    plugins {
+        testPlugin {
+            id = 'dk.mada.test'
+            displayName = "display name"
+            description = "desciption"
+            tags.set(['tag-1', 'tag-2'])
+            implementationClass = 'dk.mada.test.TestPlugin'
+        }
+    }
+}
+
+project.delete("build/buildinfo")

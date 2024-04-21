@@ -14,7 +14,7 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Checkout
@@ -39,4 +39,4 @@ jobs:
 #          signing_key: ${{ secrets.SIGNING_KEY }}
 #          signing_key_secret: ${{ secrets.SIGNING_KEY_SECRET }}
 #          search_directory: build/dist
-#          target_action: 'promote_or_keep'
+#          target_action: 'keep'
