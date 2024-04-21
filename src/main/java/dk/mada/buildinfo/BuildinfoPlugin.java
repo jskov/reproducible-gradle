@@ -13,6 +13,13 @@ import dk.mada.buildinfo.tasks.GenerateBuildInfo;
  */
 public final class BuildinfoPlugin implements Plugin<Project> {
 
+    /**
+     * Creates a new instance.
+     */
+    public BuildinfoPlugin() {
+        super();
+    }
+
     @Override
     public void apply(Project project) {
         project.getTasks().register("generateBuildInfo", GenerateBuildInfo.class)
