@@ -2,8 +2,11 @@ package dk.mada.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -21,19 +24,20 @@ public class PluginTest {
      * Tests that buildinfo is created correctly for a gradle plugin.
      */
     @Test
-    void buildinfoWorksForGradlePlugin() {
+    void buildinfoWorksForGradlePlugin() throws IOException {
         Path testDataDir = Paths.get("src/test/data/plugin");
         BuildResult result = runTest(testDataDir);
-
-        System.out.println(result.getOutput());
 
         assertThat(result.task(TASK_NAME).getOutcome())
                 .isEqualTo(TaskOutcome.SUCCESS);
 
-        Path actualBuildInfo = testDataDir.resolve("build/buildinfo/simple-unspecified.buildinfo");
-        Path expectedBuildInfo = testDataDir.resolve("expected-buildinfo.txt");
+        Set<String> ignoredPrefixes = Set.of("java.vendor", "java.version");
+        String actualBuildInfo = readFileIgnoringLinesWithPrefix(testDataDir.resolve("build/buildinfo/simple-unspecified.buildinfo"),
+                ignoredPrefixes);
+        String expectedBuildInfo = readFileIgnoringLinesWithPrefix(testDataDir.resolve("expected-buildinfo.txt"), ignoredPrefixes);
+
         assertThat(actualBuildInfo)
-                .hasSameTextualContentAs(expectedBuildInfo);
+                .isEqualTo(expectedBuildInfo);
     }
 
     /**
@@ -53,5 +57,14 @@ public class PluginTest {
                 .withPluginClasspath()
                 .withArguments(TASK_NAME, "-s")
                 .build();
+    }
+
+    private String readFileIgnoringLinesWithPrefix(Path file, Set<String> prefixes) throws IOException {
+        String txt = Files.readString(file);
+        for (String prefix : prefixes) {
+            String pattern = "(?m)^" + prefix + ".*";
+            txt = txt.replaceFirst(pattern, "");
+        }
+        return txt;
     }
 }
