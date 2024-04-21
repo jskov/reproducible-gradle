@@ -73,8 +73,8 @@ project.afterEvaluate { p ->
         }
         getPom().licenses {
             license {
-                name = 'GNU GENERAL PUBLIC LICENSE'
-                url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
+                name = 'Licensed under the EUPL-1.2-or-later'
+                url = 'https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt'
             }
         }
         getPom().scm {
