@@ -6,8 +6,9 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest 
-    permissions: 
+    runs-on: ubuntu-latest
+    environment: dk-mada-signing
+    permissions:
       contents: write
       packages: write
     steps:
