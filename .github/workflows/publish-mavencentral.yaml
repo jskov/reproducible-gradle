@@ -31,12 +31,12 @@ jobs:
         env:
           BUILD_LABEL: ${{ github.head_ref || github.ref_name }}
 
-#      - name: Upload and Release Bundle
-#        uses: jskov/action-nexus-publish@f93f3a76488c83729461bc6274cb8d43e9abe34a
-#        with:
-#          ossrh_username: ${{ secrets.OSSRH_USERNAME }}
-#          ossrh_token: ${{ secrets.OSSRH_TOKEN }}
-#          signing_key: ${{ secrets.SIGNING_KEY }}
-#          signing_key_secret: ${{ secrets.SIGNING_KEY_SECRET }}
-#          search_directory: build/dist
-#          target_action: 'keep'
+      - name: Upload and Release Bundle
+        uses: jskov/action-nexus-publish@f93f3a76488c83729461bc6274cb8d43e9abe34a
+        with:
+          ossrh_username: ${{ secrets.OSSRH_USERNAME }}
+          ossrh_token: ${{ secrets.OSSRH_TOKEN }}
+          signing_key: ${{ secrets.SIGNING_KEY }}
+          signing_key_secret: ${{ secrets.SIGNING_KEY_SECRET }}
+          search_directory: build/dist
+          target_action: 'keep'
