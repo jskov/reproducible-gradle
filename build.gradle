@@ -2,6 +2,7 @@ plugins {
     id 'com.gradle.plugin-publish' version '1.2.1'
     id 'eclipse'
     id 'dk.mada.style' version '0.9.6'
+    id 'dk.mada.buildinfo' version '0.9.0'
 }
 
 ext {
@@ -37,7 +38,7 @@ gradlePlugin {
     website = 'https://github.com/jskov/buildinfo-gradle'
     vcsUrl = 'https://github.com/jskov/buildinfo-gradle'
     plugins {
-        stylePlugin {
+        buildinfoPlugin {
             id = 'dk.mada.buildinfo'
             displayName = mavenDisplayName
             description = mavenDescription
