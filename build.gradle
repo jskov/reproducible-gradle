@@ -38,7 +38,7 @@ gradlePlugin {
     website = 'https://github.com/jskov/buildinfo-gradle'
     vcsUrl = 'https://github.com/jskov/buildinfo-gradle'
     plugins {
-        stylePlugin {
+        buildinfoPlugin {
             id = 'dk.mada.buildinfo'
             displayName = mavenDisplayName
             description = mavenDescription
