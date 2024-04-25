@@ -20,7 +20,7 @@ public final class BuildinfoPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         Logger logger = project.getLogger();
-        
+
         if (project.getParent() != null) {
             logger.warn("Plugin should only be applied on the main project");
             return;
