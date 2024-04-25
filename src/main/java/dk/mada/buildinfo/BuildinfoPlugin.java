@@ -26,7 +26,7 @@ public final class BuildinfoPlugin implements Plugin<Project> {
             return;
         }
 
-        project.allprojects(aProject -> {
+        project.allprojects(aProject -> 
             aProject.afterEvaluate(postEvaluatedProject -> {
                 logger.info("Configure jars in evaluated {}", postEvaluatedProject);
                 postEvaluatedProject.getTasks().withType(AbstractArchiveTask.class).configureEach(jar -> {
@@ -34,7 +34,7 @@ public final class BuildinfoPlugin implements Plugin<Project> {
                     jar.setReproducibleFileOrder(true);
                     jar.setPreserveFileTimestamps(false);
                 });
-            });
-        });
+            })
+        );
     }
 }
