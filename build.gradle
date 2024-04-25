@@ -46,8 +46,6 @@ gradlePlugin {
             implementationClass = 'dk.mada.buildinfo.BuildinfoPlugin'
         }
     }
-    
-    testSourceSets sourceSets.test
 }
 
 publishing {
@@ -83,27 +81,5 @@ project.afterEvaluate { p ->
             developerConnection = 'scm:git:ssh://github.com:jskov/buildinfo-gradle.git'
             url = 'https://github.com/jskov/buildinfo-gradle/'
         }
-    }
-}
-
-// Makes it possible to run Plugin tests
-tasks.eclipse {
-    dependsOn('processResources')
-    doLast {
-        project.delete("build/pluginUnderTestMetadata")
-        project.mkdir("build/pluginUnderTestMetadata")
-        project.file("./build/pluginUnderTestMetadata/plugin-under-test-metadata.properties") <<
-            "implementation-classpath=${project.rootDir}/bin/main:${project.rootDir}/build/resources/main\n" 
-   }
-}
-
-test {
-    useJUnitPlatform()
-    
-    inputs.file("src/test/data/plugin/expected-buildinfo.txt")
-    
-    testLogging {
-        showStandardStreams = true
-        exceptionFormat = 'full'
     }
 }
