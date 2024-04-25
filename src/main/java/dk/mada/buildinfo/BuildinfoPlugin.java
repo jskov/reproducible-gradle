@@ -26,15 +26,13 @@ public final class BuildinfoPlugin implements Plugin<Project> {
             return;
         }
 
-        project.allprojects(aProject -> 
-            aProject.afterEvaluate(postEvaluatedProject -> {
-                logger.info("Configure jars in evaluated {}", postEvaluatedProject);
-                postEvaluatedProject.getTasks().withType(AbstractArchiveTask.class).configureEach(jar -> {
-                    logger.info("Making {} reproducible", jar.getName());
-                    jar.setReproducibleFileOrder(true);
-                    jar.setPreserveFileTimestamps(false);
-                });
-            })
-        );
+        project.allprojects(aProject -> aProject.afterEvaluate(postEvaluatedProject -> {
+            logger.info("Configure jars in evaluated {}", postEvaluatedProject);
+            postEvaluatedProject.getTasks().withType(AbstractArchiveTask.class).configureEach(jar -> {
+                logger.info("Making {} reproducible", jar.getName());
+                jar.setReproducibleFileOrder(true);
+                jar.setPreserveFileTimestamps(false);
+            });
+        }));
     }
 }
