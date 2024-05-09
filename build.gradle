@@ -6,8 +6,8 @@ plugins {
 }
 
 ext {
-    mavenDisplayName = 'Plugin for creating buildinfo for maven artifacts'
-    mavenDescription = 'A plugin that creates buildinfo for maven artifacts.'
+    mavenDisplayName = 'Plugin for reproducible maven artifacts'
+    mavenDescription = 'A plugin that configures archive tasks to be reproducible.'
 }
 
 group = 'dk.mada.buildinfo'
