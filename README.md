@@ -15,7 +15,7 @@ Add plugin activation to the build file header (substitute the relevant version)
         id 'dk.mada.buildinfo' version '1.n.n'
     }
 
-And make sure the plugin can be fetched from MavenCentral:
+And make sure the plugin can be fetched from MavenCentral by adding this to `settings.gradle`:
 
     pluginManagement {
         repositories {
