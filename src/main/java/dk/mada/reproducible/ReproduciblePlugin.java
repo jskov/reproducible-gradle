@@ -1,4 +1,4 @@
-package dk.mada.buildinfo;
+package dk.mada.reproducible;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -8,12 +8,12 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 /**
  * Plugin configures archive tasks to be reproducible.
  */
-public final class BuildinfoPlugin implements Plugin<Project> {
+public final class ReproduciblePlugin implements Plugin<Project> {
 
     /**
      * Creates a new instance.
      */
-    public BuildinfoPlugin() {
+    public ReproduciblePlugin() {
         super();
     }
 

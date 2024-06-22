@@ -10,7 +10,7 @@ ext {
     mavenDescription = 'A plugin that configures archive tasks to be reproducible.'
 }
 
-group = 'dk.mada.buildinfo'
+group = 'dk.mada.reproducible'
 
 repositories {
     repositories {
@@ -35,15 +35,15 @@ dependencies {
 }
 
 gradlePlugin {
-    website = 'https://github.com/jskov/buildinfo-gradle'
-    vcsUrl = 'https://github.com/jskov/buildinfo-gradle'
+    website = 'https://github.com/jskov/reproducible-gradle'
+    vcsUrl = 'https://github.com/jskov/reproducible-gradle'
     plugins {
-        buildinfoPlugin {
-            id = 'dk.mada.buildinfo'
+        reproduciblePlugin {
+            id = 'dk.mada.reproducible'
             displayName = mavenDisplayName
             description = mavenDescription
             tags.set(['buildinfo', 'reproducible'])
-            implementationClass = 'dk.mada.buildinfo.BuildinfoPlugin'
+            implementationClass = 'dk.mada.reproducible.ReproduciblePlugin'
         }
     }
 }
@@ -59,7 +59,7 @@ publishing {
 
 project.afterEvaluate { p ->
     tasks.withType(GenerateMavenPom).all {
-        getPom().url = 'https://github.com/jskov/buildinfo-gradle'
+        getPom().url = 'https://github.com/jskov/reproducible-gradle'
         getPom().name = mavenDisplayName
         getPom().description = mavenDescription
 
@@ -77,9 +77,9 @@ project.afterEvaluate { p ->
             }
         }
         getPom().scm {
-            connection = 'scm:git:git://github.com/jskov/buildinfo-gradle.git'
-            developerConnection = 'scm:git:ssh://github.com:jskov/buildinfo-gradle.git'
-            url = 'https://github.com/jskov/buildinfo-gradle/'
+            connection = 'scm:git:git://github.com/jskov/reproducible-gradle.git'
+            developerConnection = 'scm:git:ssh://github.com:jskov/reproducible-gradle.git'
+            url = 'https://github.com/jskov/reproducible-gradle/'
         }
     }
 }

@@ -5,4 +5,4 @@ pluginManagement {
         mavenLocal()
     }
 }
-rootProject.name='buildinfo-gradle'
+rootProject.name='reproducible-gradle'
