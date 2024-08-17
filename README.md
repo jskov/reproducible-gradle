@@ -1,6 +1,6 @@
 # reproducible-gradle
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jskov_reproducible-gradle&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jskov_reproducible-gradle)
-[![Reproducible Builds](https://img.shields.io/badge/Reproducible_Builds-ok-success?labelColor=1e5b96)](https://github.com/jvm-repo-rebuild/reproducible-central/blob/master/content/dk/mada/reproducible/reproducible-gradle/README.md)
+[![Reproducible Builds](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jvm-repo-rebuild/reproducible-central/master/content/dk/mada/reproducible/reproducible-gradle/badge.json)](https://github.com/jvm-repo-rebuild/reproducible-central/blob/master/content/dk/mada/reproducible/reproducible-gradle/README.md)
 
 A small Gradle plugin that enables [reproducible builds](https://reproducible-builds.org/) by [configuring archive tasks](https://docs.gradle.org/current/userguide/working_with_files.html#sec:reproducible_archives) to be reproducible.
 
