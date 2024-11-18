@@ -1,7 +1,7 @@
 plugins {
     id 'com.gradle.plugin-publish' version '1.3.0'
     id 'eclipse'
-    id 'dk.mada.style' version '1.0.3'
+    id 'dk.mada.style' version '1.0.4'
     id 'dk.mada.reproducible' version '1.0.2'
 }
 
