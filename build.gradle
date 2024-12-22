@@ -3,6 +3,7 @@ plugins {
     id 'eclipse'
     id 'dk.mada.style' version '1.0.4'
     id 'dk.mada.reproducible' version '1.0.2'
+    id 'dk.mada.java' version '0.0.0-SNAPSHOT-1'
 }
 
 ext {
@@ -19,13 +20,7 @@ repositories {
     mavenCentral()
 }
 
-configurations {
-    addedDependencies
-}
-
 dependencies {
-    compileOnly        'org.jspecify:jspecify:1.0.0'
-
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly    'org.junit.platform:junit-platform-launcher'
@@ -48,6 +43,7 @@ gradlePlugin {
     }
 }
 
+/*
 publishing {
     repositories {
         maven {
@@ -56,7 +52,39 @@ publishing {
         }
     }
 }
+*/
 
+madaJava {
+    publishTo(file("build/dist"))
+
+    pom {
+        url         = 'https://github.com/jskov/reproducible-gradle'
+        name        = mavenDisplayName
+        description = mavenDescription
+
+        developers {
+            developer {
+                id    = 'jskov'
+                name  = 'Jesper Skov'
+                email = 'jskov@mada.dk'
+            }
+        }
+
+        licenses {
+            license {
+                name = 'Licensed under the EUPL-1.2-or-later'
+                url  = 'https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt'
+            }
+        }
+
+        scm {
+            connection          = 'scm:git:git://github.com/jskov/reproducible-gradle.git'
+            developerConnection = 'scm:git:ssh://github.com:jskov/reproducible-gradle.git'
+            url                 = 'https://github.com/jskov/reproducible-gradle/'
+        }
+    }
+}
+/*
 project.afterEvaluate { p ->
     tasks.withType(GenerateMavenPom).all {
         getPom().url = 'https://github.com/jskov/reproducible-gradle'
@@ -79,7 +107,8 @@ project.afterEvaluate { p ->
         getPom().scm {
             connection = 'scm:git:git://github.com/jskov/reproducible-gradle.git'
             developerConnection = 'scm:git:ssh://github.com:jskov/reproducible-gradle.git'
-            url = 'https://github.com/jskov/reproducible-gradle/'
+            //url = 'https://github.com/jskov/reproducible-gradle/'
         }
     }
 }
+*/
