@@ -1,16 +1,10 @@
 plugins {
     id 'com.gradle.plugin-publish' version '1.3.0'
     id 'eclipse'
+    id 'dk.mada.java' version '1.0.0'
     id 'dk.mada.style' version '1.0.4'
     id 'dk.mada.reproducible' version '1.0.2'
 }
-
-ext {
-    mavenDisplayName = 'Plugin for reproducible maven artifacts'
-    mavenDescription = 'A plugin that configures archive tasks to be reproducible.'
-}
-
-group = 'dk.mada.reproducible'
 
 repositories {
     repositories {
@@ -19,13 +13,7 @@ repositories {
     mavenCentral()
 }
 
-configurations {
-    addedDependencies
-}
-
 dependencies {
-    compileOnly        'org.jspecify:jspecify:1.0.0'
-
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly    'org.junit.platform:junit-platform-launcher'
@@ -34,52 +22,49 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.27.0'
 }
 
+group = 'dk.mada.reproducible'
+
 gradlePlugin {
     website = 'https://github.com/jskov/reproducible-gradle'
     vcsUrl = 'https://github.com/jskov/reproducible-gradle'
     plugins {
         reproduciblePlugin {
             id = 'dk.mada.reproducible'
-            displayName = mavenDisplayName
-            description = mavenDescription
+            displayName = 'Plugin for reproducible maven artifacts'
+            description = 'A plugin that configures archive tasks to be reproducible.'
             tags.set(['buildinfo', 'reproducible'])
             implementationClass = 'dk.mada.reproducible.ReproduciblePlugin'
         }
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "dist"
-            url = "file://${project.rootProject.file("build/dist").getAbsolutePath()}"
-        }
-    }
-}
+madaJava {
+    publishTo(file("build/dist"))
 
-project.afterEvaluate { p ->
-    tasks.withType(GenerateMavenPom).all {
-        getPom().url = 'https://github.com/jskov/reproducible-gradle'
-        getPom().name = mavenDisplayName
-        getPom().description = mavenDescription
+    pom {
+        url         = 'https://github.com/jskov/reproducible-gradle'
+        name        = 'Plugin for reproducible maven artifacts'
+        description = 'A plugin that configures archive tasks to be reproducible.'
 
-        getPom().developers {
+        developers {
             developer {
-                id = 'jskov'
-                name = 'Jesper Skov'
+                id    = 'jskov'
+                name  = 'Jesper Skov'
                 email = 'jskov@mada.dk'
             }
         }
-        getPom().licenses {
+
+        licenses {
             license {
                 name = 'Licensed under the EUPL-1.2-or-later'
-                url = 'https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt'
+                url  = 'https://joinup.ec.europa.eu/sites/default/files/custom-page/attachment/2020-03/EUPL-1.2%20EN.txt'
             }
         }
-        getPom().scm {
-            connection = 'scm:git:git://github.com/jskov/reproducible-gradle.git'
+
+        scm {
+            connection          = 'scm:git:git://github.com/jskov/reproducible-gradle.git'
             developerConnection = 'scm:git:ssh://github.com:jskov/reproducible-gradle.git'
-            url = 'https://github.com/jskov/reproducible-gradle/'
+            url                 = 'https://github.com/jskov/reproducible-gradle/'
         }
     }
 }
