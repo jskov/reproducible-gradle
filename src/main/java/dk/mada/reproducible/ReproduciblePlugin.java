@@ -14,7 +14,7 @@ public final class ReproduciblePlugin implements Plugin<Project> {
      * Creates a new instance.
      */
     public ReproduciblePlugin() {
-        super();
+        // empty
     }
 
     @Override
