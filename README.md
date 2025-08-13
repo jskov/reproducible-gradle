@@ -1,3 +1,5 @@
+**Obsoleted as of [Gradle 9.0.0](https://docs.gradle.org/9.0.0/release-notes.html#archive-tasks-produce-reproducible-archives-by-default)**
+
 # reproducible-gradle
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=jskov_reproducible-gradle&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=jskov_reproducible-gradle)
 [![Reproducible Builds](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jvm-repo-rebuild/reproducible-central/master/content/dk/mada/reproducible/reproducible-gradle/badge.json)](https://github.com/jvm-repo-rebuild/reproducible-central/blob/master/content/dk/mada/reproducible/reproducible-gradle/README.md)
